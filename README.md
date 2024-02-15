@@ -33,7 +33,12 @@ OpenCV (cv2)
 NumPy
 TensorFlow
 Matplotlib
+
+
 You can install these dependencies using the following pip commands:
+
+
+
 pip install opencv-python-headless
 
 pip install numpy

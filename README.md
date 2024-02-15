@@ -35,8 +35,12 @@ TensorFlow
 Matplotlib
 You can install these dependencies using the following pip commands:
 pip install opencv-python-headless
+
 pip install numpy
+
+
 pip install tensorflow
+
 pip install matplotlib
 
 

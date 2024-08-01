@@ -7,7 +7,7 @@ This project implements a real-time facial emotion recognition system using Pyth
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your_username/real-time-facial-emotion-recognition.git
+   git clone https://github.com/AzizBahloul/Real-time-Facial-Emotion-Recognition.git
 
 pip install -r requirements.txt
 

@@ -1,57 +1,188 @@
+#!/usr/bin/env python3
+"""
+🎭 Real-time Facial Emotion Recognition System
+==============================================
+
+A professional facial emotion recognition application using deep learning.
+
+Features:
+- Real-time emotion detection from webcam
+- 7 emotion classes: Angry, Disgust, Fear, Happy, Sad, Surprise, Neutral
+- Professional UI with confidence visualization
+- Real-time statistics tracking
+- Screenshot capability
+
+Usage:
+    python main.py [--model PATH] [--camera ID]
+    
+Controls:
+    Q - Quit application
+    S - Take screenshot
+    R - Reset statistics
+
+Author: Facial Emotion Recognition Project
+"""
+
+import sys
 import os
-import cv2
-import numpy as np
-from tensorflow.keras.preprocessing import image
-import warnings
-warnings.filterwarnings("ignore")
-from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from pathlib import Path
 
-from tensorflow.keras.models import load_model
-import matplotlib.pyplot as plt
-import numpy as np
-import time
+# Ensure the project root is in the path
+PROJECT_ROOT = Path(__file__).parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
-# Load model
-model = load_model("my_model.h5")
+# Suppress TensorFlow warnings
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-face_haar_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
-cap = cv2.VideoCapture(0)
+def check_dependencies():
+    """Check if all required dependencies are installed."""
+    required = {
+        'cv2': 'opencv-python',
+        'numpy': 'numpy',
+        'tensorflow': 'tensorflow',
+    }
+    
+    missing = []
+    for module, package in required.items():
+        try:
+            __import__(module)
+        except ImportError:
+            missing.append(package)
+    
+    if missing:
+        print("❌ Missing dependencies:")
+        for pkg in missing:
+            print(f"   - {pkg}")
+        print("\n💡 Install with: pip install -r requirements.txt")
+        return False
+    
+    return True
 
-start_time = time.time()  # Start time
 
-while True:
-    ret, test_img = cap.read()  # captures frame and returns boolean value and captured image
-    if not ret:
-        continue
-    gray_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)  # Convert to grayscale
+def print_banner():
+    """Print application banner."""
+    banner = """
+    ╔═══════════════════════════════════════════════════════════╗
+    ║                                                           ║
+    ║   🎭 Real-time Facial Emotion Recognition System 🎭       ║
+    ║                                                           ║
+    ║   Detecting: Angry | Disgust | Fear | Happy               ║
+    ║              Sad | Surprise | Neutral                     ║
+    ║                                                           ║
+    ╚═══════════════════════════════════════════════════════════╝
+    """
+    print(banner)
 
-    faces_detected = face_haar_cascade.detectMultiScale(gray_img, 1.32, 5)
 
-    for (x, y, w, h) in faces_detected:
-        cv2.rectangle(test_img, (x, y), (x + w, y + h), (255, 0, 0), thickness=7)
-        roi_gray = gray_img[y:y + w, x:x + h]  # cropping region of interest i.e. face area from image
-        roi_gray = cv2.resize(roi_gray, (64, 64))  # Resize ROI
-        img_pixels = image.img_to_array(roi_gray)
-        img_pixels = np.expand_dims(img_pixels, axis=0)
-        img_pixels = np.expand_dims(img_pixels, axis=-1)  # Add single channel dimension
-        img_pixels /= 255
+def main():
+    """Main entry point for the application."""
+    print_banner()
+    
+    # Check dependencies
+    if not check_dependencies():
+        sys.exit(1)
+    
+    # Import and run the emotion recognition system
+    try:
+        from src.emotion_detector import EmotionRecognitionSystem
+        from config.settings import MODEL_PATH, MODELS_DIR, create_directories
+        
+        # Ensure directories exist
+        create_directories()
+        
+        # Parse command line arguments
+        import argparse
+        parser = argparse.ArgumentParser(
+            description="Real-time Facial Emotion Recognition System",
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            epilog="""
+Examples:
+  python main.py                    # Run with default settings
+  python main.py --camera 1         # Use camera device 1
+  python main.py --model path/to/model.keras  # Use custom model
+            """
+        )
+        parser.add_argument(
+            '--model', '-m',
+            type=str,
+            default=None,
+            help='Path to trained model (default: models/emotion_model.keras)'
+        )
+        parser.add_argument(
+            '--camera', '-c',
+            type=int,
+            default=0,
+            help='Camera device ID (default: 0)'
+        )
+        parser.add_argument(
+            '--list-cameras',
+            action='store_true',
+            help='List available cameras and exit'
+        )
+        
+        args = parser.parse_args()
+        
+        # List cameras if requested
+        if args.list_cameras:
+            import cv2
+            print("\n📷 Checking available cameras...")
+            available = []
+            for i in range(10):
+                cap = cv2.VideoCapture(i)
+                if cap.isOpened():
+                    available.append(i)
+                    cap.release()
+            
+            if available:
+                print(f"   Available camera IDs: {available}")
+            else:
+                print("   No cameras found!")
+            return
+        
+        # Determine model path
+        model_path = args.model
+        if model_path is None:
+            # Check for existing models
+            possible_paths = [
+                MODELS_DIR / 'emotion_model.keras',
+                MODELS_DIR / 'emotion_model.h5',
+                MODELS_DIR / 'emotion_model_best.keras',
+                PROJECT_ROOT / 'my_model.h5',
+            ]
+            
+            for path in possible_paths:
+                if path.exists():
+                    model_path = str(path)
+                    break
+            
+            if model_path is None:
+                print("⚠️  No trained model found!")
+                print("\n📝 To train a model:")
+                print("   1. Open training/emotion_recognition_training.ipynb")
+                print("   2. Run all cells to train the model")
+                print("   3. The model will be saved to models/")
+                print("\n💡 Or specify a model path: python main.py --model path/to/model.h5")
+                sys.exit(1)
+        
+        print(f"📂 Using model: {model_path}")
+        print(f"📷 Using camera: {args.camera}")
+        
+        # Create and run the system
+        system = EmotionRecognitionSystem(
+            model_path=model_path,
+            camera_id=args.camera
+        )
+        system.run()
+        
+    except KeyboardInterrupt:
+        print("\n\n👋 Application terminated by user")
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
 
-        predictions = model.predict(img_pixels)
 
-        # find max indexed array
-        max_index = np.argmax(predictions[0])
-
-        emotions = ('angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral')
-        predicted_emotion = emotions[max_index]
-
-        cv2.putText(test_img, predicted_emotion, (int(x), int(y)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-
-    resized_img = cv2.resize(test_img, (1000, 700))
-    cv2.imshow('Facial emotion analysis', resized_img)
-
-    if cv2.waitKey(10) == ord('q') or time.time() - start_time >= 30:  # wait until 'q' key is pressed or 10 seconds have passed
-        break
-
-cap.release()
-cv2.destroyAllWindows()
+if __name__ == "__main__":
+    main()

@@ -40,9 +40,9 @@ EMOTION_COLORS = {
 
 # Face detection settings
 FACE_CASCADE_PATH = "haarcascade_frontalface_default.xml"
-SCALE_FACTOR = 1.3
-MIN_NEIGHBORS = 5
-MIN_FACE_SIZE = (30, 30)
+SCALE_FACTOR = 1.1   # Detection scale factor
+MIN_NEIGHBORS = 5    # Higher = fewer false positives
+MIN_FACE_SIZE = (80, 80)  # Larger minimum to avoid small false detections
 
 # Display settings
 WINDOW_WIDTH = 1280

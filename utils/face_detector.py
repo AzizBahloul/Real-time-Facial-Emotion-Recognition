@@ -13,9 +13,9 @@ class FaceDetector:
     
     def __init__(
         self,
-        scale_factor: float = 1.3,
+        scale_factor: float = 1.1,
         min_neighbors: int = 5,
-        min_face_size: Tuple[int, int] = (30, 30)
+        min_face_size: Tuple[int, int] = (80, 80)
     ):
         """
         Initialize face detector
@@ -53,6 +53,9 @@ class FaceDetector:
         """
         # Convert to grayscale
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        
+        # Apply histogram equalization for better detection in varying lighting
+        gray = cv2.equalizeHist(gray)
         
         # Detect faces
         faces = self.face_cascade.detectMultiScale(

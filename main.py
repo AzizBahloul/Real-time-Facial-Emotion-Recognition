@@ -1,27 +1,4 @@
-#!/usr/bin/env python3
-"""
-🎭 Real-time Facial Emotion Recognition System
-==============================================
 
-A professional facial emotion recognition application using deep learning.
-
-Features:
-- Real-time emotion detection from webcam
-- 7 emotion classes: Angry, Disgust, Fear, Happy, Sad, Surprise, Neutral
-- Professional UI with confidence visualization
-- Real-time statistics tracking
-- Screenshot capability
-
-Usage:
-    python main.py [--model PATH] [--camera ID]
-    
-Controls:
-    Q - Quit application
-    S - Take screenshot
-    R - Reset statistics
-
-Author: Facial Emotion Recognition Project
-"""
 
 import sys
 import os
